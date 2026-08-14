@@ -5,6 +5,8 @@ import cv2
 import numpy as np
 import onnxruntime
 from onnxruntime.capi import _pybind_state as C
+import argparse
+from pprint import pprint
 
 __labels = [
     "FEMALE_GENITALIA_COVERED",
@@ -278,24 +280,26 @@ class NudeDetector:
 
 
 if __name__ == "__main__":
-    detector = NudeDetector()
-    # detections = detector.detect("/Users/praneeth.bedapudi/Desktop/cory.jpeg")
-    print(
-        detector.detect_batch(
-            [
-                "/Users/praneeth.bedapudi/Desktop/d.jpg",
-                "/Users/praneeth.bedapudi/Desktop/a.jpeg",
-            ]
-        )[0]
-    )
-    print(detector.detect_batch(["/Users/praneeth.bedapudi/Desktop/d.jpg"])[0])
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-i", "--input", type=str, default=None)
+    parser.add_argument("-m", "--model_path", type=str, default=None)
+    parser.add_argument("-r", "--inference_resolution", type=int, default=320)
+    parser.add_argument("-b", "--batch_size", type=int, default=4)
+    args = parser.parse_args()
+    detector = NudeDetector(
+        model_path=args.model_path,
+        inference_resolution=args.inference_resolution,
+        )    
+    if pathlib.Path(args.input).is_dir():
+        input_paths = [str(pd.resolve().absolute()) for pd in pathlib.Path(args.input).iterdir()]
+    else:
+        input_paths = [str(pathlib.Path(p).resolve().absolute()) for p in glob.iglob(args.input)]
 
-    print(
-        detector.detect_batch(
-            [
-                "/Users/praneeth.bedapudi/Desktop/d.jpg",
-                "/Users/praneeth.bedapudi/Desktop/a.jpeg",
-            ]
-        )[1]
-    )
-    print(detector.detect_batch(["/Users/praneeth.bedapudi/Desktop/a.jpeg"])[0])
+    detections = nude_detector.detect_batch(
+        input_paths,
+        batch_size=args.batch_size)
+
+    for index,det in enumerate(detections):
+        pprint(str_paths[index])
+        pprint(det)
+        print("\n")
